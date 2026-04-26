@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
-import 'package:cookie_jar/cookie_jar.dart';
-import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:sppg_driver_app/screens/splash_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
 
 class Dashboard extends StatefulWidget {
@@ -12,11 +10,10 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  late ApiService api;
+  final api = ApiService();
   @override
   void initState() {
     super.initState();
-    api = ApiService();
   }
   
   Future<void> checkCookies() async {
@@ -60,6 +57,10 @@ class _DashboardState extends State<Dashboard> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Logout")),
+    );
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => SplashScreen()),
+      (Route<dynamic> route) => false,
     );
   }
   @override

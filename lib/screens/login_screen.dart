@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import 'package:cookie_jar/cookie_jar.dart';
-import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:sppg_driver_app/screens/main_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
+import 'package:sppg_driver_app/services/biometric_service.dart';
+import 'package:sppg_driver_app/services/secure_storage_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,15 +15,11 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController namaController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  late ApiService api;
-  @override
-  void initState() {
-    super.initState();
-    api = ApiService();
-    api.init();
-  }
+  final api = ApiService();
+  bool isLoading = false;
 
   Future<void> login() async {
+    setState(() => isLoading = true);
     //var _res;
     try {
       final response = await api.dio.post(
@@ -35,27 +31,36 @@ class _LoginScreenState extends State<LoginScreen> {
         //menghindari error 401
         options: Options (validateStatus: (_) => true)
       );
-      // _res = response;
-    
+
       if (response.data["success"] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Login berhasil")),
-        );
+        if (!mounted) return;
+        biometricOffer();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => MainScreen())
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.data["message"])),
-        );
-        
-      }
-    } catch (e) {
+      } 
+    } on DioException catch (e) {
+      final message = e.response?.data["message"] ?? "Login gagal";
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
+        SnackBar(content: Text(message)),
       );
+    }finally {
+      setState(() => isLoading = false);
     }
+  }
+  Future<void> biometricOffer() async{
+    final biometricAvailable = await BiometricService.instance.isAvailable();
+    if (biometricAvailable) {
+      await SecureStorageService.instance.setBiometricEnabled(true);
+    }
+  }
+
+  @override
+  void dispose() {
+    namaController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
