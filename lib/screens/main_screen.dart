@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sppg_driver_app/screens/dashboard.dart';
-import 'package:sppg_driver_app/screens/notifikasi_screen.dart';
+import 'package:sppg_driver_app/screens/profile_screen.dart';
 import 'package:sppg_driver_app/screens/scan_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -16,7 +16,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _pages = [
     Dashboard(),
     ScanScreen(),
-    NotifikasiScreen(),
+    ProfileScreen(),
   ];
 
   @override
@@ -42,8 +42,8 @@ class _MainScreenState extends State<MainScreen> {
             label: "Scan",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: "Notifikasi",
+            icon: Icon(Icons.person),
+            label: "Profile",
           ),
         ],
       ),

@@ -15,7 +15,7 @@ class BiometricService {
   Future<bool> authenticate() async {
     try {
       return await _auth.authenticate(
-        localizedReason: 'Gunakan Face ID untuk masuk',
+        localizedReason: 'Gunakan Finger Print untuk masuk',
         biometricOnly: true,
         persistAcrossBackgrounding: true,
       );
