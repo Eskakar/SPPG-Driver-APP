@@ -23,13 +23,13 @@ class ApiService {
     );
 
     dio.interceptors.add(CookieManager(cookieJar));
-    dio.options.baseUrl = "http://10.0.2.2:3000/api/auth";
+    dio.options.baseUrl = "http://10.0.2.2:3000/api";
 
     isReady = true;
   }
   Future<bool> checkSession() async {
     try {
-      final res = await dio.get("/me"); // endpoint user/me
+      final res = await dio.get("/auth/me"); // endpoint user/me
       return res.statusCode == 200;
     } catch (e) {
       return false;

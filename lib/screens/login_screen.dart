@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
     //var _res;
     try {
       final response = await api.dio.post(
-        "/login",
+        "/auth/login",
         data: {
           "nama": namaController.text,
           "password": passwordController.text,

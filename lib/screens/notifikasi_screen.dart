@@ -13,6 +13,7 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('notifikasi'),
+        toolbarHeight: 20,
       ),
     );
   }

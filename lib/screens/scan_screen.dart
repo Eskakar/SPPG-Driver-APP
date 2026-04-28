@@ -13,6 +13,7 @@ class _ScanScreenState extends State<ScanScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Scan"),
+        toolbarHeight: 20,
       ),
     );
   }
