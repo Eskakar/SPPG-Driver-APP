@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:sppg_driver_app/screens/login_screen.dart';
 import 'package:sppg_driver_app/screens/main_screen.dart';
@@ -40,29 +39,20 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> checkAuth() async {
-    try {
-      // cek apakah biometric diaktifkan user
-      final biometricEnabled = await SecureStorageService.instance.isBiometricEnabled();
-
-      if (biometricEnabled) {
-        final ok = await BiometricService.instance.authenticate();
-
-        if (!ok) {
-          return goLogin();
-        }
-      }
-
-      // cek session dari cookie
-      final response = await api.dio.get("/me");
-
-      if (response.data["success"] == true) {
-        return goDashboard();
-      }
-
-      return goLogin();
-    } on DioException {
-      return goLogin();
+    final hasSession = await api.checkSession();
+    if(!hasSession){
+      goLogin();
+      return;
     }
+    final biometricEnabled = await SecureStorageService.instance.isBiometricEnabled();
+      if (biometricEnabled) {
+      final ok = await BiometricService.instance.authenticate();
+      if (!ok) {
+        goLogin();
+        return;
+      }
+    }
+    goDashboard();
   }
 
   @override

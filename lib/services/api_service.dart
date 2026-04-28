@@ -27,4 +27,12 @@ class ApiService {
 
     isReady = true;
   }
+  Future<bool> checkSession() async {
+    try {
+      final res = await dio.get("/me"); // endpoint user/me
+      return res.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
 }
