@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sppg_driver_app/screens/splash_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
-
+import 'package:dio/dio.dart';
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -11,14 +11,13 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final api = ApiService();
-
-  
+  bool isScanning = false;
   Future<void> checkCookies() async {
     if (!api.isReady) {
       await api.init();
     }
     final cookies = await api.cookieJar.loadForRequest(
-      Uri.parse("http://10.0.2.2:3000"),
+      Uri.parse(api.baseUrl),
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -60,7 +59,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }catch(_){
       
     }
+  }
 
+  Future<void> debugScan() async {
+    setState(() => isScanning = true);
+
+    try {
+      final res = await ApiService().dio.post(
+        "/tugas/scan",
+        data: {
+          "qr_code": "RUN-4",
+          "latitude": -6.2100,
+          "longitude": 106.8100,
+        },
+        options: Options (validateStatus: (_) => true)
+      );
+
+      final data = res.data;
+
+      if (!mounted) return;
+
+      // 🔥 HANDLE SUCCESS / ERROR
+      if (data["success"] == true) {
+        final result = data["data"];
+
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: Text(
+              result["type"] == "pickup"
+                  ? "Pickup Berhasil"
+                  : "Berhasil Dikirim",
+            ),
+            content: Text(result["message"]),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() => isScanning = false);
+                },
+                child: const Text("OK"),
+              )
+            ],
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data["message"])),
+        );
+
+        setState(() => isScanning = false);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+
+      setState(() => isScanning = false);
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -92,6 +150,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: logout,
               child: const Text("Logout"),
             ),
+            ElevatedButton(
+            onPressed: () async {
+              await debugScan();
+            },
+            child: const Text("Debug Scan RUN-4"),
+          ),
           ],
         ),
       )

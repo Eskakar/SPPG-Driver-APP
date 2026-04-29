@@ -145,7 +145,7 @@ class _DashboardState extends State<Dashboard> {
     return TextField(
       controller: searchController,
       onChanged: (value) {
-        searchTugas(value); // 🔥 realtime search
+        searchTugas(value); // realtime search
       },
       decoration: InputDecoration(
         hintText: "Search tanggal / sekolah",
