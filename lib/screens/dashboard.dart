@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:sppg_driver_app/screens/current_task_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
-  
+
   @override
   State<Dashboard> createState() => _DashboardState();
 }
@@ -13,7 +15,6 @@ class _DashboardState extends State<Dashboard> {
 
   Map? currentTugas;
   List history = [];
-  List historySearch = [];
   Map? user;
   bool isLoading = true;
   bool isSearching = false;
@@ -39,16 +40,14 @@ class _DashboardState extends State<Dashboard> {
       setState(() => isLoading = false);
     }
   }
+
   Future<void> searchTugas(String keyword) async {
     setState(() => isSearching = true);
-
     try {
-      final res = await ApiService()
-          .dio
-          .get("/tugas/search", queryParameters: {
-        "search": keyword,
-      });
-
+      final res = await ApiService().dio.get(
+        "/tugas/search",
+        queryParameters: {"search": keyword},
+      );
       setState(() {
         history = res.data["data"];
       });
@@ -59,113 +58,152 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
+  String _formatTanggal(String? raw) {
+    if (raw == null) return "";
+    try {
+      final dt = DateTime.parse(raw);
+      return DateFormat("dd/MM/yyyy").format(dt);
+    } catch (_) {
+      return raw;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 20,
-        backgroundColor: Colors.blue,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _header(),
+          const SizedBox(height: 12),
+          _buildSearch(),
+          const SizedBox(height: 12),
+          _taskAndHistory(),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _header(),
-              const SizedBox(height: 15),
-              _currentTask(),
-              const SizedBox(height: 15),
-              _buildSearch(),
-              const SizedBox(height: 15),
-              _history(),
-            ],
-          ),
-        )
-      )
     );
   }
 
+  // ========================
+  // HEADER
+  // ========================
   Widget _header() {
-    if (user == null) {
-      return const CircularProgressIndicator();
-    }
-    
-
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text("Selamat Datang"),
-
-                const SizedBox(height: 5),
-
-                Text(
-                  user!["nama"],
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Expanded(
+                child: Text(
+                  "Selamat datang",
+                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+              ),
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: user != null && user!["foto_profil"] != null
+                        ? NetworkImage(user!["foto_profil"])
+                        : const AssetImage("assets/profile.png")
+                              as ImageProvider,
+                    fit: BoxFit.cover,
                   ),
                 ),
-
-                const SizedBox(height: 5),
-
-                Text(
-                  "Rp ${user!["gaji"]}",
-                  style: const TextStyle(color: Colors.green),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-
-          // FOTO
-          CircleAvatar(
-            radius: 25,
-            backgroundImage: user!["foto_profil"] != null
-                ? NetworkImage(user!["foto_profil"])
-                : const AssetImage("assets/profile.png") as ImageProvider,
+          const SizedBox(height: 4),
+          Text(
+            user?["nama"] ?? "Nama",
+            style: const TextStyle(fontSize: 14, color: Colors.black87),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            user != null
+                ? NumberFormat.currency(
+                    locale: "id_ID",
+                    symbol: "Rp",
+                    decimalDigits: 2,
+                  ).format(double.tryParse(user!["gaji"].toString()) ?? 0)
+                : "Rp0",
+            style: const TextStyle(fontSize: 14, color: Colors.black87),
           ),
         ],
       ),
     );
   }
+
+  // ========================
+  // SEARCH
+  // ========================
   Widget _buildSearch() {
-    return TextField(
-      controller: searchController,
-      onChanged: (value) {
-        searchTugas(value); // 🔥 realtime search
-      },
-      decoration: InputDecoration(
-        hintText: "Search tanggal / sekolah",
-        prefixIcon: const Icon(Icons.search),
-        suffixIcon: searchController.text.isNotEmpty
-            ? IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  searchController.clear();
-                  searchTugas(""); // reset
-                  setState(() {});
-                },
-              )
-            : null,
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: TextField(
+        controller: searchController,
+        onChanged: (value) {
+          searchTugas(value);
+          setState(() {});
+        },
+        decoration: InputDecoration(
+          hintText: "Search data history tugas",
+          border: InputBorder.none,
+          suffixIcon: searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    searchController.clear();
+                    searchTugas("");
+                    setState(() {});
+                  },
+                )
+              : null,
         ),
+      ),
+    );
+  }
+
+  // ========================
+  // CURRENT TASK + HISTORY (dalam 1 container)
+  // ========================
+  Widget _taskAndHistory() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _currentTask(),
+          if (isSearching)
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else
+            _history(),
+        ],
       ),
     );
   }
@@ -174,30 +212,58 @@ class _DashboardState extends State<Dashboard> {
   // CURRENT TASK
   // ========================
   Widget _currentTask() {
-    if (currentTugas == null) {
-      return const Text("Tidak ada tugas");
-    }
+    final sekolah = currentTugas != null
+        ? currentTugas!["sekolah"] as List
+        : [];
 
-    final sekolah = currentTugas!["sekolah"];
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.green[300],
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text("Tugas Saat Ini"),
-
-          const SizedBox(height: 10),
-
-          ...sekolah.map<Widget>((s) {
-            return Text("${s["nama"]} (${s["progress"]})");
-          }).toList(),
-        ],
+    return GestureDetector(
+      onTap: currentTugas != null
+          ? () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CurrentTaskScreen()),
+              );
+            }
+          : null,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: const BoxDecoration(
+          color: Color(0xFF6DBF67),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(8),
+            topRight: Radius.circular(8),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Tugas Saat ini",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (sekolah.isEmpty)
+              const Text(
+                "Tidak ada tugas",
+                style: TextStyle(color: Colors.white),
+              )
+            else
+              ...sekolah.map<Widget>((s) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 8, bottom: 2),
+                  child: Text(
+                    s["nama"] ?? "",
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                  ),
+                );
+              }).toList(),
+          ],
+        ),
       ),
     );
   }
@@ -206,21 +272,22 @@ class _DashboardState extends State<Dashboard> {
   // HISTORY
   // ========================
   Widget _history() {
-    if (isSearching) {
-      return const Center(child: CircularProgressIndicator());
-    }
     return Column(
       children: history.map<Widget>((h) {
+        final tanggal = _formatTanggal(h["tanggal"]?.toString());
+        final hari = h["hari"] ?? "";
+
         return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(16),
+          width: double.infinity,
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.blue[300],
-            borderRadius: BorderRadius.circular(12),
+            color: const Color(0xFF6B9FD4),
+            borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
-            "Tugas ${h["hari"]} (${h["tanggal"]})",
-            style: const TextStyle(color: Colors.white),
+            "Tugas Selesai $hari $tanggal",
+            style: const TextStyle(color: Colors.white, fontSize: 14),
           ),
         );
       }).toList(),
