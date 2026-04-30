@@ -3,7 +3,6 @@ import 'package:sppg_driver_app/screens/login_screen.dart';
 import 'package:sppg_driver_app/screens/main_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
 import 'package:sppg_driver_app/services/biometric_service.dart';
-import 'package:sppg_driver_app/services/notification_local_service.dart';
 import 'package:sppg_driver_app/services/notification_service.dart';
 import 'package:sppg_driver_app/services/secure_storage_service.dart';
 

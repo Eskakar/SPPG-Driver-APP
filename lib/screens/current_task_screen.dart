@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:sppg_driver_app/services/api_service.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:sppg_driver_app/screens/map_screen.dart';
+import 'package:sppg_driver_app/services/location_service.dart';
+import 'package:sppg_driver_app/widgets/error_toast.dart';
+import '../services/tugas_service.dart';
 
 class CurrentTaskScreen extends StatefulWidget {
   const CurrentTaskScreen({super.key});
@@ -10,67 +13,91 @@ class CurrentTaskScreen extends StatefulWidget {
 }
 
 class _CurrentTaskScreenState extends State<CurrentTaskScreen> {
-  Map? tugasData;
+  Map? tugas;
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchCurrentTugas();
+    fetchData();
   }
 
-  Future<void> fetchCurrentTugas() async {
+  Future<void> _openMap(Map sekolah) async {
     try {
-      final res = await ApiService().dio.get("/tugas/current");
-      setState(() {
-        tugasData = res.data["data"];
-        isLoading = false;
-      });
+      final position = await LocationService.instance.getCurrentLocation();
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MapScreen(
+            driverLat: position.latitude,
+            driverLng: position.longitude,
+            sekolahLat: sekolah["latitude"],
+            sekolahLng: sekolah["longitude"],
+          ),
+        ),
+      );
     } catch (e) {
-      setState(() => isLoading = false);
+      if (!mounted) return;
+      showErrorToast(context, "Gagal mengambil lokasi");
+      print("Error open map: $e");
     }
   }
 
-  Future<void> _openMap(double latitude, double longitude, String nama) async {
-    final uri = Uri.parse(
-      "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude",
-    );
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+
+  Future<void> fetchData() async {
+    final data = await TugasService.instance.getCurrentTugas();
+
+    setState(() {
+      tugas = data;
+      isLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
-    if (tugasData == null) {
+    if (tugas == null) {
       return const Scaffold(
         body: Center(child: Text("Tidak ada tugas berjalan")),
       );
     }
 
-    final statistik = tugasData!["statistik"];
-    final sekolahList = tugasData!["sekolah"] as List;
+    final sekolahList = tugas!["sekolah"];
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text("Tugas Saat Ini"),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-      ),
-      body: SingleChildScrollView(
+      appBar: AppBar(title: const Text("Tugas Saat Ini")),
+      body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // DATA MBG SPPG
-            _mbgCard(statistik),
-            const SizedBox(height: 12),
+            // ========================
+            // PROGRESS GLOBAL
+            // ========================
+            _buildProgress(),
+
+            const SizedBox(height: 20),
+
+            // ========================
             // LIST SEKOLAH
-            ...sekolahList.map<Widget>((s) => _sekolahCard(s)).toList(),
+            // ========================
+            Expanded(
+              child: ListView.builder(
+                itemCount: sekolahList.length,
+                itemBuilder: (context, index) {
+                  final s = sekolahList[index];
+
+                  return _buildSekolahCard(s);
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -78,41 +105,25 @@ class _CurrentTaskScreenState extends State<CurrentTaskScreen> {
   }
 
   // ========================
-  // CARD DATA MBG
+  // PROGRESS GLOBAL
   // ========================
-  Widget _mbgCard(Map statistik) {
+  Widget _buildProgress() {
+    final progress = tugas!["statistik"]["progress"];
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF6B9FD4),
-        border: Border.all(color: Colors.white, width: 2),
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.green[300],
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "DATA MBG sppg",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 60), // space kosong seperti mockup
-          Text(
-            "MBG di sppg : ${statistik["mbg_sppg"]}",
-            style: const TextStyle(color: Colors.white),
-          ),
-          Text(
-            "MBG dalam perjalanan : ${statistik["mbg_perjalanan"]}",
-            style: const TextStyle(color: Colors.white),
-          ),
-          Text(
-            "MBG telah sampai : ${statistik["mbg_sampai"]}",
-            style: const TextStyle(color: Colors.white),
-          ),
+          const Text("Progress Pengantaran"),
+          const SizedBox(height: 10),
+          Text("$progress%"),
+          const SizedBox(height: 10),
+          LinearProgressIndicator(value: progress / 100)
         ],
       ),
     );
@@ -121,42 +132,22 @@ class _CurrentTaskScreenState extends State<CurrentTaskScreen> {
   // ========================
   // CARD SEKOLAH
   // ========================
-  Widget _sekolahCard(Map sekolah) {
+  Widget _buildSekolahCard(Map s) {
     return Container(
-      width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color(0xFF6DBF67),
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            sekolah["nama"] ?? "",
-            style: const TextStyle(color: Colors.white, fontSize: 15),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final lat = sekolah["latitude"];
-              final lng = sekolah["longitude"];
-              if (lat != null && lng != null) {
-                _openMap(
-                  double.parse(lat.toString()),
-                  double.parse(lng.toString()),
-                  sekolah["nama"] ?? "",
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey[300],
-              foregroundColor: Colors.black,
-              elevation: 0,
-            ),
-            child: const Text("MAP"),
-          ),
-        ],
+      child: ListTile(
+        title: Text(s["nama"]),
+        subtitle: Text("Progress: ${s["progress"]}"),
+        trailing: const Icon(Icons.arrow_forward_ios),
+        // 🔥 nanti bisa ke map
+        onTap: () {
+          _openMap(s);
+        },
       ),
     );
   }

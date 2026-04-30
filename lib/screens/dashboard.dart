@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:sppg_driver_app/screens/current_task_screen.dart';
 import 'package:sppg_driver_app/screens/splash_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
+import 'package:sppg_driver_app/services/tugas_service.dart';
 import 'package:sppg_driver_app/widgets/error_toast.dart';
 
 class Dashboard extends StatefulWidget {
@@ -35,41 +36,38 @@ class _DashboardState extends State<Dashboard> {
         (Route<dynamic> route) => false,
       );
     }else{
-      fetchData();
+      loadData();
     }
   }
-  Future<void> fetchData() async {
+  
+  Future<void> loadData() async {
     try {
-      final current = await ApiService().dio.get("/tugas/current");
-      final historyRes = await ApiService().dio.get("/tugas/history/preview");
-      final userRes = await ApiService().dio.get("/user/me");
+      final result = await TugasService.instance.fetchAllTugas();
+
+      if (!mounted) return;
+
       setState(() {
-        currentTugas = current.data["data"];
-        history = historyRes.data["data"];
+        currentTugas = result["current"];
+        history = result["history"];
+        user = result["user"];
         isLoading = false;
-        user = userRes.data["data"];
       });
-    } catch (_) {
-      setState(() => 
-        isLoading = false,
-      );
-      if(!mounted)return;
-      showErrorToast(context,"Gagal menyambungkan dengan server");
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => isLoading = false);
+      showErrorToast(context, "Gagal menyambungkan dengan server");
     }
   }
 
   Future<void> searchTugas(String keyword) async {
     setState(() => isSearching = true);
+
     try {
-      final res = await ApiService().dio.get(
-        "/tugas/search",
-        queryParameters: {"search": keyword},
-      );
+      final result = await TugasService.instance.searchTugas(keyword);
       setState(() {
-        history = res.data["data"];
+        history = result;
       });
-    } catch (e) {
-      // handle error
     } finally {
       setState(() => isSearching = false);
     }
