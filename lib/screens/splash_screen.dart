@@ -44,7 +44,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> checkAuth() async {
     final hasSession = await api.checkSession();
-    await NotificationService.instance.fetchAndShowNotif();
+    //await NotificationService.instance.fetchAndShowNotif();
     // await NotificationService.instance.markAsRead();
     if(!hasSession){
       goLogin();
