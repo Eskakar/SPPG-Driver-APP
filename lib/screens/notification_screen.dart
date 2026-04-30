@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/notification_service.dart';
+import '../services/api_service.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -20,29 +21,22 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Future<void> fetchNotif() async {
     try {
-      final data = await NotificationService.instance.getNotifications();
+      final res = await ApiService().dio.get("/notif");
 
       setState(() {
-        notif = data;
+        notif = res.data["data"];
         isLoading = false;
       });
+
+      // saat buka screen → mark read
+      await NotificationService.instance.markAsRead();
     } catch (e) {
       setState(() => isLoading = false);
     }
   }
 
-  // saat masuk screen → auto read
-  Future<void> markAsRead() async {
-    await NotificationService.instance.markAsRead();
-  }
-
   @override
   Widget build(BuildContext context) {
-    // langsung mark read saat build pertama
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      markAsRead();
-    });
-
     if (isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),

@@ -8,8 +8,8 @@ class LocalNotifService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
 
     const initSettings = InitializationSettings(
       android: androidSettings,
@@ -27,6 +27,7 @@ class LocalNotifService {
     const androidDetails = AndroidNotificationDetails(
       'notif_channel',
       'Notifikasi Driver',
+      channelDescription: 'Notifikasi tugas driver',
       importance: Importance.max,
       priority: Priority.high,
     );
@@ -34,9 +35,10 @@ class LocalNotifService {
     const notifDetails = NotificationDetails(
       android: androidDetails,
     );
-
+    int notificationId = DateTime.now().millisecondsSinceEpoch.remainder(100000);
+    
     await flutterLocalNotificationsPlugin.show(
-      id: 0,
+      id: notificationId,
       title: title,
       body: body,
       notificationDetails: notifDetails,
