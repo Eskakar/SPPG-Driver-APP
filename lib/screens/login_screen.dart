@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:sppg_driver_app/screens/main_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
 import 'package:sppg_driver_app/services/biometric_service.dart';
+import 'package:sppg_driver_app/services/notification_service.dart';
 import 'package:sppg_driver_app/services/secure_storage_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -39,6 +40,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.data["success"] == true) {
+        await NotificationService.instance.fetchAndShowNotif();
+        // await NotificationService.instance.markAsRead();
         if (!mounted) return;
         _biometricOffer();
         Navigator.pushReplacement(

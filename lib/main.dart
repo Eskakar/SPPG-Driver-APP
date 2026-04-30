@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:sppg_driver_app/screens/splash_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:sppg_driver_app/services/notification_local_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   await ApiService().init();
-
+  await LocalNotifService.instance.init();
   runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
-
+  
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(

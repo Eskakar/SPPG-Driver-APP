@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sppg_driver_app/screens/notification_screen.dart';
 import 'package:sppg_driver_app/screens/splash_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
 import 'package:dio/dio.dart';
@@ -49,6 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> logout() async {
     try{
       await api.dio.post("/auth/logout");
+      if(!mounted)return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Logout")),
       );
@@ -69,8 +71,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         "/tugas/scan",
         data: {
           "qr_code": "RUN-4",
-          "latitude": -6.2100,
-          "longitude": 106.8100,
+          "latitude": -6.2200,
+          "longitude": 106.8200,
         },
         options: Options (validateStatus: (_) => true)
       );
@@ -79,7 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (!mounted) return;
 
-      // 🔥 HANDLE SUCCESS / ERROR
+      // HANDLE SUCCESS / ERROR
       if (data["success"] == true) {
         final result = data["data"];
 
@@ -151,11 +153,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: const Text("Logout"),
             ),
             ElevatedButton(
-            onPressed: () async {
-              await debugScan();
-            },
-            child: const Text("Debug Scan RUN-4"),
-          ),
+              onPressed: () async {
+                await debugScan();
+              },
+              child: const Text("Debug Scan RUN-4"),
+            ),
+            IconButton(
+              icon: const Icon(Icons.notifications),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationScreen(),
+                  ),
+                );
+              },
+            )
           ],
         ),
       )
