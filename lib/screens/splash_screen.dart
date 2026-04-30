@@ -3,6 +3,7 @@ import 'package:sppg_driver_app/screens/login_screen.dart';
 import 'package:sppg_driver_app/screens/main_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
 import 'package:sppg_driver_app/services/biometric_service.dart';
+import 'package:sppg_driver_app/services/notification_service.dart';
 import 'package:sppg_driver_app/services/secure_storage_service.dart';
 
 
@@ -19,6 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    
     checkAuth();
   }
 
@@ -30,7 +32,9 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  Future<void> goDashboard() async {
+  Future<void> goMainScreen() async {
+    // await NotificationService.instance.markAsRead();
+    // await NotificationService.instance.fetchAndShowNotif();
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
@@ -40,6 +44,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> checkAuth() async {
     final hasSession = await api.checkSession();
+    await NotificationService.instance.fetchAndShowNotif();
+    // await NotificationService.instance.markAsRead();
     if(!hasSession){
       goLogin();
       return;
@@ -52,7 +58,7 @@ class _SplashScreenState extends State<SplashScreen> {
         return;
       }
     }
-    goDashboard();
+    goMainScreen();
   }
 
   @override

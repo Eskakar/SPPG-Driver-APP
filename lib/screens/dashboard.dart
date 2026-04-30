@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sppg_driver_app/screens/current_task_screen.dart';
+import 'package:sppg_driver_app/screens/splash_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
+import 'package:sppg_driver_app/widgets/error_toast.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -18,13 +20,24 @@ class _DashboardState extends State<Dashboard> {
   Map? user;
   bool isLoading = true;
   bool isSearching = false;
-
+  
   @override
   void initState() {
     super.initState();
-    fetchData();
+    _checkLogin();
   }
-
+  Future<void> _checkLogin() async{
+    final isLogin = await ApiService().checkSession();
+    if(!isLogin && mounted){
+      showErrorToast(context,"Cokiess expired");
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => SplashScreen()),
+        (Route<dynamic> route) => false,
+      );
+    }else{
+      fetchData();
+    }
+  }
   Future<void> fetchData() async {
     try {
       final current = await ApiService().dio.get("/tugas/current");
@@ -36,8 +49,12 @@ class _DashboardState extends State<Dashboard> {
         isLoading = false;
         user = userRes.data["data"];
       });
-    } catch (e) {
-      setState(() => isLoading = false);
+    } catch (_) {
+      setState(() => 
+        isLoading = false,
+      );
+      if(!mounted)return;
+      showErrorToast(context,"Gagal menyambungkan dengan server");
     }
   }
 

@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:sppg_driver_app/screens/splash_screen.dart';
+import 'package:sppg_driver_app/services/api_service.dart';
+import 'package:sppg_driver_app/widgets/error_toast.dart';
+import '../services/scan_service.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -8,12 +13,94 @@ class ScanScreen extends StatefulWidget {
 }
 
 class _ScanScreenState extends State<ScanScreen> {
+  bool isScanning = false;
+  @override
+  void initState() {
+    super.initState();
+    _checkLogin();
+  }
+  Future<void> _checkLogin() async{
+    final isLogin = await ApiService().checkSession();
+    if(!isLogin && mounted){
+      showErrorToast(context,"Cokiess expired");
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => SplashScreen()),
+        (Route<dynamic> route) => false,
+      );
+    }
+  }
+  void handleScan(String qr) async {
+    if (isScanning) return;
+
+    setState(() => isScanning = true);
+
+    try {
+      final result = await ScanService.instance.scanBox(qr);
+
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text(
+            result["type"] == "pickup"
+                ? "Pickup Berhasil"
+                : "Berhasil Dikirim",
+          ),
+          content: Text(result["message"]),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() => isScanning = false);
+              },
+              child: const Text("OK"),
+            )
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showErrorToast(context, e.toString());
+      setState(() => isScanning = false);
+    }
+    // delay sebelum bisa scan lagi
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (mounted) {
+      setState(() => isScanning = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Scan"),
-        toolbarHeight: 20,
+      appBar: AppBar(title: const Text("Scan QR")),
+      body: Stack(
+        children: [
+          MobileScanner(
+            onDetect: (BarcodeCapture capture) {
+              final List<Barcode> barcodes = capture.barcodes;
+              for (final barcode in barcodes) {
+                final String? code = barcode.rawValue;
+
+                if (code != null) {
+                  handleScan(code);
+                  break; // biar tidak double scan
+                }
+              }
+            },
+          ),
+
+          // overlay loading
+          if (isScanning)
+            Container(
+              color: Colors.black45,
+              child: const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            ),
+        ],
       ),
     );
   }
