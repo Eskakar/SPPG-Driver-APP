@@ -27,7 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> login() async {
     setState(() => isLoading = true);
-    //var _res;
     try {
       final response = await api.dio.post(
         "/auth/login",
@@ -41,7 +40,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.data["success"] == true) {
         await NotificationService.instance.fetchAndShowNotif();
-        // await NotificationService.instance.markAsRead();
         if (!mounted) return;
         _biometricOffer();
         Navigator.pushReplacement(
