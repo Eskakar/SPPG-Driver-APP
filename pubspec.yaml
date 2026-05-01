@@ -33,4 +33,6 @@ flutter:
   uses-material-design: true
   assets:
    - assets/profile.png
+   - assets/sppg.png
+   - assets/logo_sppg.png
    - .env

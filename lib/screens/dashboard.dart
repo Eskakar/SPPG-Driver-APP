@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sppg_driver_app/screens/current_task_screen.dart';
@@ -21,31 +22,30 @@ class _DashboardState extends State<Dashboard> {
   Map? user;
   bool isLoading = true;
   bool isSearching = false;
-  
+
   @override
   void initState() {
     super.initState();
     _checkLogin();
   }
-  Future<void> _checkLogin() async{
+
+  Future<void> _checkLogin() async {
     final isLogin = await ApiService().checkSession();
-    if(!isLogin && mounted){
-      showErrorToast(context,"Cokiess expired");
+    if (!isLogin && mounted) {
+      showErrorToast(context, "Cookies expired");
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => SplashScreen()),
         (Route<dynamic> route) => false,
       );
-    }else{
+    } else {
       loadData();
     }
   }
-  
+
   Future<void> loadData() async {
     try {
       final result = await TugasService.instance.fetchAllTugas();
-
       if (!mounted) return;
-
       setState(() {
         currentTugas = result["current"];
         history = result["history"];
@@ -54,7 +54,6 @@ class _DashboardState extends State<Dashboard> {
       });
     } catch (e) {
       if (!mounted) return;
-
       setState(() => isLoading = false);
       showErrorToast(context, "Gagal menyambungkan dengan server");
     }
@@ -62,7 +61,6 @@ class _DashboardState extends State<Dashboard> {
 
   Future<void> searchTugas(String keyword) async {
     setState(() => isSearching = true);
-
     try {
       final result = await TugasService.instance.searchTugas(keyword);
       setState(() {
@@ -89,18 +87,43 @@ class _DashboardState extends State<Dashboard> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _header(),
-          const SizedBox(height: 12),
-          _buildSearch(),
-          const SizedBox(height: 12),
-          _taskAndHistory(),
-        ],
-      ),
+    return Stack(
+      children: [
+        // Background gambar
+        Positioned.fill(
+          child: Image.asset("assets/logo_sppg.png", fit: BoxFit.cover),
+        ),
+
+        // Blur
+        Positioned.fill(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+            child: Container(color: const Color(0x00000000)),
+          ),
+        ),
+
+        // Konten
+        SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _header(),
+                const SizedBox(height: 12),
+                _currentTask(),
+                const SizedBox(height: 12),
+                _buildSearch(),
+                const SizedBox(height: 12),
+                _historySection(),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -108,57 +131,146 @@ class _DashboardState extends State<Dashboard> {
   // HEADER
   // ========================
   Widget _header() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Stack(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Expanded(
-                child: Text(
-                  "Selamat datang",
-                  style: TextStyle(fontSize: 14, color: Colors.black87),
-                ),
-              ),
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: user != null && user!["foto_profil"] != null
-                        ? NetworkImage(user!["foto_profil"])
-                        : const AssetImage("assets/profile.png")
-                              as ImageProvider,
-                    fit: BoxFit.cover,
+          ColorFiltered(
+            colorFilter: const ColorFilter.mode(
+              Color(0x994FC3F7),
+              BlendMode.srcOver,
+            ),
+            child: Image.asset(
+              "assets/sppg.png",
+              width: double.infinity,
+              height: 150,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+              child: Container(color: const Color(0x00000000)),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Selamat datang",
+                        style: TextStyle(fontSize: 13, color: Colors.white),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user?["nama"] ?? "Nama",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user != null
+                            ? NumberFormat.currency(
+                                locale: "id_ID",
+                                symbol: "Rp",
+                                decimalDigits: 0,
+                              ).format(
+                                double.tryParse(user!["gaji"].toString()) ?? 0,
+                              )
+                            : "Rp0",
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            user?["nama"] ?? "Nama",
-            style: const TextStyle(fontSize: 14, color: Colors.black87),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            user != null
-                ? NumberFormat.currency(
-                    locale: "id_ID",
-                    symbol: "Rp",
-                    decimalDigits: 2,
-                  ).format(double.tryParse(user!["gaji"].toString()) ?? 0)
-                : "Rp0",
-            style: const TextStyle(fontSize: 14, color: Colors.black87),
+                Container(
+                  width: 65,
+                  height: 65,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                    image: DecorationImage(
+                      image: user != null && user!["foto_profil"] != null
+                          ? NetworkImage(user!["foto_profil"])
+                          : const AssetImage("assets/profile.png")
+                                as ImageProvider,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ========================
+  // CURRENT TASK
+  // ========================
+  Widget _currentTask() {
+    final sekolah = currentTugas != null
+        ? currentTugas!["sekolah"] as List
+        : [];
+
+    return GestureDetector(
+      onTap: currentTugas != null
+          ? () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CurrentTaskScreen()),
+              );
+            }
+          : null,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF6DBF67),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Tugas Saat ini",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (sekolah.isEmpty)
+              const Text(
+                "Tidak ada tugas",
+                style: TextStyle(color: Colors.white),
+              )
+            else
+              ...sekolah.map<Widget>((s) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 8, bottom: 2),
+                  child: Text(
+                    s["nama"] ?? "",
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                  ),
+                );
+              }),
+          ],
+        ),
       ),
     );
   }
@@ -198,95 +310,28 @@ class _DashboardState extends State<Dashboard> {
   }
 
   // ========================
-  // CURRENT TASK + HISTORY (dalam 1 container)
-  // ========================
-  Widget _taskAndHistory() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _currentTask(),
-          if (isSearching)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else
-            _history(),
-        ],
-      ),
-    );
-  }
-
-  // ========================
-  // CURRENT TASK
-  // ========================
-  Widget _currentTask() {
-    final sekolah = currentTugas != null
-        ? currentTugas!["sekolah"] as List
-        : [];
-
-    return GestureDetector(
-      onTap: currentTugas != null
-          ? () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CurrentTaskScreen()),
-              );
-            }
-          : null,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: Color(0xFF6DBF67),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(8),
-            topRight: Radius.circular(8),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Tugas Saat ini",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            if (sekolah.isEmpty)
-              const Text(
-                "Tidak ada tugas",
-                style: TextStyle(color: Colors.white),
-              )
-            else
-              ...sekolah.map<Widget>((s) {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 8, bottom: 2),
-                  child: Text(
-                    s["nama"] ?? "",
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                );
-              }).toList(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ========================
   // HISTORY
   // ========================
-  Widget _history() {
+  Widget _historySection() {
+    if (isSearching) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (history.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          "Tidak ada history tugas",
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
+    }
+
     return Column(
       children: history.map<Widget>((h) {
         final tanggal = _formatTanggal(h["tanggal"]?.toString());
@@ -294,11 +339,11 @@ class _DashboardState extends State<Dashboard> {
 
         return Container(
           width: double.infinity,
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: const Color(0xFF6B9FD4),
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             "Tugas Selesai $hari $tanggal",

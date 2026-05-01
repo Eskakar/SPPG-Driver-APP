@@ -46,7 +46,6 @@ class _CurrentTaskScreenState extends State<CurrentTaskScreen> {
     }
   }
 
-
   Future<void> fetchData() async {
     final data = await TugasService.instance.getCurrentTugas();
 
@@ -59,9 +58,7 @@ class _CurrentTaskScreenState extends State<CurrentTaskScreen> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (tugas == null) {
@@ -123,7 +120,7 @@ class _CurrentTaskScreenState extends State<CurrentTaskScreen> {
           const SizedBox(height: 10),
           Text("$progress%"),
           const SizedBox(height: 10),
-          LinearProgressIndicator(value: progress / 100)
+          LinearProgressIndicator(value: progress / 100),
         ],
       ),
     );
