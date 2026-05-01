@@ -23,6 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool isSpinning = false;
   String rouletteResult = "";
   double _currentAngle = 0;
+  int _targetIndex = 0;
 
   // Currency
   final TextEditingController _currencyController = TextEditingController();
@@ -46,31 +47,54 @@ class _ProfileScreenState extends State<ProfileScreen>
     "Coba lagi 😅",
   ];
 
+  // Probabilitas tiap item
+  final List<double> _rouletteProbabilities = [
+    0.01, // MOTOR! 🎉
+    0.20, // 5K 😂
+    0.20, // 10K 😂
+    0.15, // 20K 😂
+    0.10, // 100K 😊
+    0.04, // 500K ⭐
+    0.30, // Coba lagi 😅
+  ];
+
+  // Weighted random
+  int _weightedRandom() {
+    final random = Random();
+    final roll = random.nextDouble(); // 0.0 - 1.0
+    double cumulative = 0.0;
+    for (int i = 0; i < _rouletteProbabilities.length; i++) {
+      cumulative += _rouletteProbabilities[i];
+      if (roll < cumulative) return i;
+    }
+    return _rouletteProbabilities.length - 1; // fallback
+  }
+
   @override
   void initState() {
     super.initState();
     fetchUser();
+
     _rouletteController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 3),
     );
-    _rouletteAnimation = CurvedAnimation(
-      parent: _rouletteController,
-      curve: Curves.decelerate,
+
+    _rouletteAnimation = Tween<double>(begin: 0, end: 0).animate(
+      CurvedAnimation(parent: _rouletteController, curve: Curves.decelerate),
     );
+
     _rouletteController.addListener(() {
       setState(() {
-        _currentAngle = _rouletteAnimation.value * 10 * pi;
+        _currentAngle = _rouletteAnimation.value;
       });
     });
+
     _rouletteController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        final index =
-            (_currentAngle / (2 * pi) * _rouletteItems.length).floor() %
-            _rouletteItems.length;
         setState(() {
           isSpinning = false;
-          rouletteResult = _rouletteItems[index];
+          rouletteResult = _rouletteItems[_targetIndex];
         });
       }
     });
@@ -108,11 +132,28 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   void _spinRoulette() {
     if (isSpinning) return;
+
+    _targetIndex = _weightedRandom();
+
+    final segmentAngle = 2 * pi / _rouletteItems.length;
+
+    final middleOfTargetSegment =
+        _targetIndex * segmentAngle + segmentAngle / 2;
+    final angleToStop = (2 * pi - middleOfTargetSegment) % (2 * pi);
+    final totalAngle = (6 * 2 * pi) + angleToStop;
+
     setState(() {
       isSpinning = true;
       rouletteResult = "";
+      _currentAngle = 0;
     });
+
     _rouletteController.reset();
+
+    _rouletteAnimation = Tween<double>(begin: 0, end: totalAngle).animate(
+      CurvedAnimation(parent: _rouletteController, curve: Curves.decelerate),
+    );
+
     _rouletteController.forward();
   }
 
@@ -579,7 +620,6 @@ class _RoulettePainter extends CustomPainter {
         paint,
       );
 
-      // Text
       final textPainter = TextPainter(
         text: TextSpan(
           text: items[i],
