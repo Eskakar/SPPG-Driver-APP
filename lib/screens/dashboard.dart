@@ -89,15 +89,14 @@ class _DashboardState extends State<Dashboard> {
 
     return Stack(
       children: [
-        // Background gambar
+        // Background: logo_sppg + overlay gelap + blur (sama dengan login)
         Positioned.fill(
           child: Image.asset("assets/logo_sppg.png", fit: BoxFit.cover),
         ),
-
-        // Blur
+        Positioned.fill(child: Container(color: const Color(0x8C000000))),
         Positioned.fill(
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
             child: Container(color: const Color(0x00000000)),
           ),
         ),
@@ -113,11 +112,11 @@ class _DashboardState extends State<Dashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _header(),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 _currentTask(),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 _buildSearch(),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 _historySection(),
               ],
             ),
@@ -128,7 +127,7 @@ class _DashboardState extends State<Dashboard> {
   }
 
   // ========================
-  // HEADER
+  // HEADER — dipertahankan persis
   // ========================
   Widget _header() {
     return ClipRRect(
@@ -219,115 +218,188 @@ class _DashboardState extends State<Dashboard> {
   }
 
   // ========================
-  // CURRENT TASK
+  // CURRENT TASK — glass hijau
   // ========================
   Widget _currentTask() {
     final sekolah = currentTugas != null
         ? currentTugas!["sekolah"] as List
         : [];
+    final hasTugas = sekolah.isNotEmpty;
 
     return GestureDetector(
-      onTap: currentTugas != null
-          ? () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CurrentTaskScreen()),
-              );
-            }
+      onTap: hasTugas
+          ? () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const CurrentTaskScreen()),
+            )
           : null,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF6DBF67),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Tugas Saat ini",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-                color: Colors.white,
-              ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xCC6DBF67), // hijau ~80%
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0x6693D68D), width: 1),
             ),
-            const SizedBox(height: 8),
-            if (sekolah.isEmpty)
-              const Text(
-                "Tidak ada tugas",
-                style: TextStyle(color: Colors.white),
-              )
-            else
-              ...sekolah.map<Widget>((s) {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 8, bottom: 2),
-                  child: Text(
-                    s["nama"] ?? "",
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                );
-              }),
-          ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.assignment_outlined,
+                      color: Colors.white,
+                      size: 17,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      "Tugas Saat ini",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (hasTugas)
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                if (!hasTugas)
+                  Text(
+                    "Tidak ada tugas",
+                    style: TextStyle(
+                      color: Colors.white.withAlpha(204),
+                      fontSize: 14,
+                    ),
+                  )
+                else
+                  ...sekolah.map<Widget>((s) {
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 4, bottom: 4),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 5,
+                            height: 5,
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          Text(
+                            s["nama"] ?? "",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
   // ========================
-  // SEARCH
+  // SEARCH — glass style
   // ========================
   Widget _buildSearch() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: TextField(
-        controller: searchController,
-        onChanged: (value) {
-          searchTugas(value);
-          setState(() {});
-        },
-        decoration: InputDecoration(
-          hintText: "Search data history tugas",
-          border: InputBorder.none,
-          suffixIcon: searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    searchController.clear();
-                    searchTugas("");
-                    setState(() {});
-                  },
-                )
-              : null,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: const Color(0x33FFFFFF),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0x40FFFFFF), width: 1),
+          ),
+          child: TextField(
+            controller: searchController,
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            cursorColor: Colors.white,
+            onChanged: (value) {
+              searchTugas(value);
+              setState(() {});
+            },
+            decoration: InputDecoration(
+              hintText: "Search data history tugas",
+              hintStyle: const TextStyle(
+                color: Color(0x99FFFFFF),
+                fontSize: 14,
+              ),
+              border: InputBorder.none,
+              icon: const Icon(
+                Icons.search_rounded,
+                color: Colors.white70,
+                size: 20,
+              ),
+              suffixIcon: searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white70,
+                        size: 18,
+                      ),
+                      onPressed: () {
+                        searchController.clear();
+                        searchTugas("");
+                        setState(() {});
+                      },
+                    )
+                  : null,
+            ),
+          ),
         ),
       ),
     );
   }
 
   // ========================
-  // HISTORY
+  // HISTORY — glass biru
   // ========================
   Widget _historySection() {
     if (isSearching) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      );
     }
 
     if (history.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Text(
-          "Tidak ada history tugas",
-          style: TextStyle(color: Colors.grey),
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0x33FFFFFF),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0x40FFFFFF), width: 1),
+            ),
+            child: const Text(
+              "Tidak ada history tugas",
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
         ),
       );
     }
@@ -337,17 +409,46 @@ class _DashboardState extends State<Dashboard> {
         final tanggal = _formatTanggal(h["tanggal"]?.toString());
         final hari = h["hari"] ?? "";
 
-        return Container(
-          width: double.infinity,
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xFF6B9FD4),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            "Tugas Selesai $hari $tanggal",
-            style: const TextStyle(color: Colors.white, fontSize: 14),
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xCC6B9FD4), // biru ~80%
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0x4D8BB8E8), width: 1),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: const Color(0x33FFFFFF),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.check_circle_outline_rounded,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      "Tugas Selesai $hari $tanggal",
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         );
       }).toList(),
