@@ -65,7 +65,7 @@ class _ScanScreenState extends State<ScanScreen> {
       setState(() => isScanning = false);
     }
     // delay sebelum bisa scan lagi
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 2));
 
     if (mounted) {
       setState(() => isScanning = false);
@@ -74,10 +74,16 @@ class _ScanScreenState extends State<ScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = const Color.fromARGB(255, 135, 206, 235);
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Scan QR")),
+      appBar: AppBar(
+        title: const Text("Scan QR"),
+        backgroundColor: primaryColor,
+      ),
       body: Stack(
         children: [
+          // CAMERA
           MobileScanner(
             onDetect: (BarcodeCapture capture) {
               final List<Barcode> barcodes = capture.barcodes;
@@ -86,13 +92,84 @@ class _ScanScreenState extends State<ScanScreen> {
 
                 if (code != null) {
                   handleScan(code);
-                  break; // biar tidak double scan
+                  break;
                 }
               }
             },
           ),
 
-          // overlay loading
+          //  OVERLAY GELAP + HOLE
+          ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              Colors.black.withValues(alpha: 0.6),
+              BlendMode.srcOut,
+            ),
+            child: Stack(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.black,
+                    backgroundBlendMode: BlendMode.dstOut,
+                  ),
+                ),
+
+                //  AREA SCAN (lubang)
+                Center(
+                  child: Container(
+                    width: 250,
+                    height: 250,
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          //  BORDER AREA SCAN
+          Center(
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: primaryColor,
+                  width: 3,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+
+          //  TEXT INSTRUCTION
+          Positioned(
+            bottom: 80,
+            left: 0,
+            right: 0,
+            child: Column(
+              children: const [
+                Text(
+                  "Arahkan QR ke dalam kotak",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  "Scan akan otomatis",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          //  LOADING
           if (isScanning)
             Container(
               color: Colors.black45,

@@ -23,6 +23,7 @@ dependencies:
   flutter_local_notifications: ^21.0.0
   flutter_map: ^8.3.0
   latlong2: ^0.9.1
+  sensors_plus: ^7.0.0
 
 dev_dependencies:
   flutter_test:
@@ -35,4 +36,5 @@ flutter:
    - assets/profile.png
    - assets/sppg.png
    - assets/logo_sppg.png
+   - assets/maps.png
    - .env

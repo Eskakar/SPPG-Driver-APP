@@ -35,6 +35,26 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
+  Color getNotifColor(Map<String, dynamic> item) {
+    final isRead = item["is_read"] ?? false;
+    final jenis = item["jenis"];
+
+    if (isRead) {
+      return Colors.grey[200]!;
+    }
+
+    switch (jenis) {
+      case "pengumuman":
+        return Colors.blue[100]!;
+      case "tugas":
+        return Colors.green[100]!;
+      case "sanksi":
+        return Colors.red[100]!;
+      default:
+        return Colors.grey[200]!;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -56,9 +76,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   margin: const EdgeInsets.all(10),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: item["is_read"]
-                        ? Colors.grey[200]
-                        : Colors.blue[100],
+                    color: getNotifColor(item),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -71,12 +89,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         ),
                       ),
                       const SizedBox(height: 5),
-                      Text(item["pesan"]),
-                      const SizedBox(height: 5),
                       Text(
                         item["jenis"],
                         style: const TextStyle(fontSize: 12),
                       ),
+                      const SizedBox(height: 5),
+                      Text(item["pesan"]),
                     ],
                   ),
                 );

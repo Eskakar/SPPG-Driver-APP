@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sppg_driver_app/screens/chat_screen.dart';
 import 'package:sppg_driver_app/screens/current_task_screen.dart';
 import 'package:sppg_driver_app/screens/splash_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
@@ -87,43 +88,47 @@ class _DashboardState extends State<Dashboard> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Stack(
-      children: [
-        // Background gambar
-        Positioned.fill(
-          child: Image.asset("assets/logo_sppg.png", fit: BoxFit.cover),
-        ),
-
-        // Blur
-        Positioned.fill(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-            child: Container(color: const Color(0x00000000)),
+    return Scaffold (
+      body: Stack(
+        children: [
+          // Background gambar
+          Positioned.fill(
+            child: Image.asset("assets/logo_sppg.png", fit: BoxFit.cover),
+            // child: Image.asset("assets/logo_sppg.png", fit: BoxFit.cover),
           ),
-        ),
 
-        // Konten
-        SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _header(),
-                const SizedBox(height: 12),
-                _currentTask(),
-                const SizedBox(height: 12),
-                _buildSearch(),
-                const SizedBox(height: 12),
-                _historySection(),
-              ],
+          // background blur dengan foto sppg
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+              child: Container(color: const Color.fromARGB(82, 167, 240, 255)),
             ),
           ),
-        ),
-      ],
+
+          // Konten
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _header(),
+                  const SizedBox(height: 12),
+                  _currentTask(),
+                  const SizedBox(height: 12),
+                  _buildSearch(),
+                  const SizedBox(height: 12),
+                  _historySection(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: _AiChatButton(context),
     );
   }
 
@@ -137,7 +142,7 @@ class _DashboardState extends State<Dashboard> {
         children: [
           ColorFiltered(
             colorFilter: const ColorFilter.mode(
-              Color(0x994FC3F7),
+              Color.fromARGB(153, 79, 152, 247),
               BlendMode.srcOver,
             ),
             child: Image.asset(
@@ -162,20 +167,21 @@ class _DashboardState extends State<Dashboard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const SizedBox(height: 4),
                       const Text(
                         "Selamat datang",
-                        style: TextStyle(fontSize: 13, color: Colors.white),
+                        style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 5),
                       Text(
                         user?["nama"] ?? "Nama",
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 30),
                       Text(
                         user != null
                             ? NumberFormat.currency(
@@ -195,21 +201,19 @@ class _DashboardState extends State<Dashboard> {
                     ],
                   ),
                 ),
-                Container(
-                  width: 65,
-                  height: 65,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                    image: DecorationImage(
-                      image: user != null && user!["foto_profil"] != null
+                Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.white,
+                    child: CircleAvatar(
+                      radius: 37,
+                      backgroundImage: user != null && user!["foto_profil"] != null
                           ? NetworkImage(user!["foto_profil"])
-                          : const AssetImage("assets/profile.png")
-                                as ImageProvider,
-                      fit: BoxFit.cover,
+                          : const AssetImage("assets/profile.png") as ImageProvider,
                     ),
                   ),
-                ),
+                )
               ],
             ),
           ),
@@ -293,6 +297,7 @@ class _DashboardState extends State<Dashboard> {
         },
         decoration: InputDecoration(
           hintText: "Search data history tugas",
+          prefixIcon: Icon(Icons.search),
           border: InputBorder.none,
           suffixIcon: searchController.text.isNotEmpty
               ? IconButton(
@@ -353,4 +358,38 @@ class _DashboardState extends State<Dashboard> {
       }).toList(),
     );
   }
+}
+Widget _AiChatButton(BuildContext context){
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const ChatScreen(),
+        ),
+      );
+    },
+    child: Container(
+      width: 65,
+      height: 65,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          colors: [Colors.blue, Colors.purple],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.smart_toy,
+        color: Colors.white,
+        size: 30,
+      ),
+    ),
+  );
 }

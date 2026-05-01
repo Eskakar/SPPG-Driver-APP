@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:dio/dio.dart';
+import 'package:sppg_driver_app/services/motion_services.dart';
 
 class MapScreen extends StatefulWidget {
   final double driverLat;
@@ -24,11 +25,35 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   List<LatLng> routePoints = [];
   double distanceKm = 0;
+  String warning = "";
 
   @override
   void initState() {
     super.initState();
     fetchRoute();
+    _speedMotion();
+  }
+
+  @override
+  void dispose() {
+    MotionService.instance.stop();
+    super.dispose();
+  }
+
+  void _speedMotion(){
+    MotionService.instance.startListening(
+      onEvent: (msg) {
+        setState(() {
+          warning = msg;
+        });
+        Future.delayed(const Duration(seconds: 2), () {
+          if (!mounted) return;
+          setState(() {
+            warning = "";
+          });
+        });
+      },
+    );
   }
 
   Future<void> fetchRoute() async {
@@ -66,6 +91,24 @@ class _MapScreenState extends State<MapScreen> {
       appBar: AppBar(title: const Text("Tracking Map")),
       body: Stack(
         children: [
+          if (warning.isNotEmpty)
+            Positioned(
+              top: 80,
+              left: 20,
+              right: 20,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  warning,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
           FlutterMap(
             options: MapOptions(
               initialCenter: LatLng(widget.driverLat, widget.driverLng),

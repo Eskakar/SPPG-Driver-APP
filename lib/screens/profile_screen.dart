@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sppg_driver_app/screens/notification_screen.dart';
 import 'package:sppg_driver_app/screens/splash_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
-import 'package:dio/dio.dart';
 import 'dart:math';
 
 class ProfileScreen extends StatefulWidget {
@@ -118,23 +117,41 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   void _convertCurrency() {
-    final input = double.tryParse(_currencyController.text);
+    String text = _currencyController.text.trim();
+
+    // Jika kosong → isi dari gaji user
+    if (text.isEmpty) {
+      final gaji = user?["gaji"];
+
+      if (gaji == null) {
+        setState(() => _convertedResult = "Masukkan Angka");
+        return;
+      }
+
+      text = gaji.toString();
+      _currencyController.text = text; // auto isi ke input
+    }
+
+    // Validasi angka
+    final input = double.tryParse(text);
     if (input == null) {
       setState(() => _convertedResult = "Masukkan angka yang valid");
       return;
     }
+
     final rate = _rates[_selectedCurrency] ?? 1;
     final result = input * rate;
+
     setState(() {
       _convertedResult =
-          "Rp ${_currencyController.text} = ${result.toStringAsFixed(4)} $_selectedCurrency";
+          "Rp $text = ${result.toStringAsFixed(4)} $_selectedCurrency";
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color.fromARGB(255, 185, 230, 239),
       body: SafeArea(
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -143,14 +160,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                 child: Column(
                   children: [
                     _profileCard(),
-                    const SizedBox(height: 16),
-                    _menuCard(
-                      icon: Icons.history,
-                      color: Colors.blue,
-                      title: "History Tugas",
-                      subtitle: "Lihat riwayat pengiriman",
-                      onTap: () {},
-                    ),
                     const SizedBox(height: 10),
                     _menuCard(
                       icon: Icons.notifications,
@@ -377,7 +386,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   controller: _currencyController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    hintText: "Jumlah (Rp)",
+                    hintText: "Rp ${user?["gaji"] ?? "Jumlah"}",
                     filled: true,
                     fillColor: Colors.grey[100],
                     border: OutlineInputBorder(
