@@ -24,8 +24,8 @@ class ApiService {
     );
 
     dio.interceptors.add(CookieManager(cookieJar));
-    //dio.options.baseUrl = baseUrl;
-    dio.options.baseUrl = "http://10.0.2.2:3000/api";
+    dio.options.baseUrl = baseUrl;
+    //dio.options.baseUrl = "http://10.0.2.2:3000/api";
     isReady = true;
   }
   Future<bool> checkSession() async {
