@@ -37,4 +37,20 @@ class TugasService {
 
     return res.data["data"];
   }
+  Future<Map<String, dynamic>?> getDetailTugasSelesai(int id) async {
+    try {
+      final res = await ApiService().dio.get(
+        "/tugas/$id/detail",
+        options: Options(validateStatus: (_) => true),
+      );
+
+      if (res.data["success"] == false) {
+        return null;
+      }
+
+      return res.data["data"];
+    } catch (e) {
+      return null;
+    }
+  }
 }

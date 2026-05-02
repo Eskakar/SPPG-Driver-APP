@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sppg_driver_app/screens/chat_screen.dart';
 import 'package:sppg_driver_app/screens/current_task_screen.dart';
+import 'package:sppg_driver_app/screens/detail_tugas_selesai_screen.dart';
 import 'package:sppg_driver_app/screens/splash_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
 import 'package:sppg_driver_app/services/tugas_service.dart';
@@ -407,44 +408,53 @@ class _DashboardState extends State<Dashboard> {
       children: history.map<Widget>((h) {
         final tanggal = _formatTanggal(h["tanggal"]?.toString());
         final hari = h["hari"] ?? "";
+        final int idTugas = h["id"];
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xCC6B9FD4),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0x4D8BB8E8), width: 1),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(7),
-                      decoration: BoxDecoration(
-                        color: const Color(0x33FFFFFF),
-                        borderRadius: BorderRadius.circular(8),
+        return GestureDetector(
+          onTap: ()=>{
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_)=> DetailTugasSelesaiScreen(tugasId: idTugas, hari: hari))
+            )
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xCC6B9FD4),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0x4D8BB8E8), width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: const Color(0x33FFFFFF),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.check_circle_outline_rounded,
+                          color: Colors.white,
+                          size: 15,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.check_circle_outline_rounded,
-                        color: Colors.white,
-                        size: 15,
+                      const SizedBox(width: 12),
+                      Text(
+                        "Tugas Selesai $hari $tanggal",
+                        style: const TextStyle(color: Colors.white, fontSize: 14),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      "Tugas Selesai $hari $tanggal",
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

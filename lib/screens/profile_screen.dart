@@ -959,97 +959,10 @@ class _ProfileScreenState extends State<ProfileScreen>
           _cardHeader(Icons.rate_review_rounded, Colors.tealAccent, "Saran"),
           const SizedBox(height: 4),
           const Text(
-            "Sampaikan saran untuk aplikasi ini",
-            style: TextStyle(fontSize: 12, color: Colors.white60),
+            "Kalau bisa tambahkan ketentuan / fitur lagi, bagi angkatan selanjutnya seperti cryptocurrency, blockchain, atau backend dengan cloud",
+            style: TextStyle(fontSize: 20, color: Colors.white60),textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
-          if (_saranSent)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.tealAccent.withAlpha(30),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.tealAccent.withAlpha(80)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.check_circle_rounded,
-                    color: Colors.tealAccent,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Text(
-                      "Terima kasih! Saran kamu sudah terkirim 🙏",
-                      style: TextStyle(
-                        color: Colors.tealAccent,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => setState(() {
-                      _saranSent = false;
-                      _saranController.clear();
-                    }),
-                    child: const Text(
-                      "Kirim lagi",
-                      style: TextStyle(fontSize: 12, color: Colors.white70),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else ...[
-            TextField(
-              controller: _saranController,
-              maxLines: 4,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-              cursorColor: Colors.white,
-              decoration: InputDecoration(
-                hintText: "Tulis saran kamu di sini...",
-                hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
-                filled: true,
-                fillColor: const Color(0x1AFFFFFF),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0x33FFFFFF)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0x33FFFFFF)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Colors.white54),
-                ),
-                contentPadding: const EdgeInsets.all(12),
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  if (_saranController.text.trim().isEmpty) return;
-                  setState(() => _saranSent = true);
-                },
-                icon: const Icon(Icons.send_rounded, size: 18),
-                label: const Text("Kirim Saran"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.tealAccent.withAlpha(200),
-                  foregroundColor: Colors.black87,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-          ],
+          const SizedBox(height: 4),
         ],
       ),
     );
@@ -1071,97 +984,11 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           const SizedBox(height: 4),
           const Text(
-            "Sampaikan kesan untuk mata kuliah ini",
-            style: TextStyle(fontSize: 12, color: Colors.white60),
+            "Kuliah Teknologi dan Pemrograman Mobile ini sangatlah seru, membuat kami semangat dalam mempelajari bahasa pemrograman baru dan meningkatkan skill pemrograman kami",
+            style: TextStyle(fontSize: 20, color: Colors.white60), textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-          if (_kesanSent)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.amberAccent.withAlpha(30),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.amberAccent.withAlpha(80)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.check_circle_rounded,
-                    color: Colors.amberAccent,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Text(
-                      "Terima kasih! Kesan kamu sudah terkirim 🙏",
-                      style: TextStyle(
-                        color: Colors.amberAccent,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => setState(() {
-                      _kesanSent = false;
-                      _kesanController.clear();
-                    }),
-                    child: const Text(
-                      "Tulis lagi",
-                      style: TextStyle(fontSize: 12, color: Colors.white70),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else ...[
-            TextField(
-              controller: _kesanController,
-              maxLines: 5,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-              cursorColor: Colors.white,
-              decoration: InputDecoration(
-                hintText: "Tulis kesan kamu di sini...",
-                hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
-                filled: true,
-                fillColor: const Color(0x1AFFFFFF),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0x33FFFFFF)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0x33FFFFFF)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Colors.white54),
-                ),
-                contentPadding: const EdgeInsets.all(12),
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  if (_kesanController.text.trim().isEmpty) return;
-                  setState(() => _kesanSent = true);
-                },
-                icon: const Icon(Icons.send_rounded, size: 18),
-                label: const Text("Kirim Kesan"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amberAccent.withAlpha(200),
-                  foregroundColor: Colors.black87,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-          ],
+          
         ],
       ),
     );
