@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sppg_driver_app/screens/error_screen.dart';
 import 'package:sppg_driver_app/screens/login_screen.dart';
 import 'package:sppg_driver_app/screens/main_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
@@ -37,31 +38,44 @@ class _SplashScreenState extends State<SplashScreen> {
       MaterialPageRoute(builder: (_) => const MainScreen()),
     );
   }
+  void goError() {
+    if (!mounted) return;
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ErrorScreen(),
+      ),
+    );
+  }
 
   Future<void> checkAuth() async {
-    final hasSession = await api.checkSession();
+    try{final hasSession = await api.checkSession().timeout(const Duration(seconds: 5));
 
-    if (!hasSession) {
-      goLogin();
-      return;
-    }
-
-    //  biometric
-    final biometricEnabled =
-        await SecureStorageService.instance.isBiometricEnabled();
-
-    if (biometricEnabled) {
-      final ok = await BiometricService.instance.authenticate();
-      if (!ok) {
+      if (!hasSession) {
         goLogin();
         return;
       }
+
+      //  biometric
+      final biometricEnabled =
+          await SecureStorageService.instance.isBiometricEnabled();
+
+      if (biometricEnabled) {
+        final ok = await BiometricService.instance.authenticate();
+        if (!ok) {
+          goLogin();
+          return;
+        }
+      }
+
+      // ambil notif SETELAH login valid
+      await NotificationService.instance.fetchAndShowNotif();
+
+      goMainScreen();
+    }catch(e){
+      goError();
     }
-
-    // ambil notif SETELAH login valid
-    await NotificationService.instance.fetchAndShowNotif();
-
-    goMainScreen();
   }
 
   @override

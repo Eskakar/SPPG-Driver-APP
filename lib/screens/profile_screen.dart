@@ -5,6 +5,8 @@ import 'package:sppg_driver_app/screens/splash_screen.dart';
 import 'package:sppg_driver_app/services/api_service.dart';
 import 'dart:math';
 
+import 'package:sppg_driver_app/services/roulette_service.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -25,6 +27,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   String rouletteResult = "";
   double _currentAngle = 0;
   int _targetIndex = 0;
+  int remainingSpin = 0;
+  String pendingResult = "";
 
   // Currency
   final TextEditingController _currencyController = TextEditingController();
@@ -49,49 +53,22 @@ class _ProfileScreenState extends State<ProfileScreen>
     "London": 0,
   };
 
-  // Saran
-  final TextEditingController _saranController = TextEditingController();
-  bool _saranSent = false;
-
-  // Kesan
-  final TextEditingController _kesanController = TextEditingController();
-  bool _kesanSent = false;
-
-  final List<String> _rouletteItems = [
-    "MOTOR! 🎉",
-    "5K 😂",
-    "10K 😂",
-    "20K 😂",
-    "100K 😊",
-    "500K ⭐",
-    "Coba lagi 😅",
+  final _rouletteItems = [
+    "Sepeda Motor",
+    "Zonk",
+    "Zonk",
+    "Rp100.000",
+    "Zonk",
+    "Zonk",
+    "Rp50.000",
+    "Zonk",
   ];
-
-  final List<double> _rouletteProbabilities = [
-    0.01,
-    0.20,
-    0.20,
-    0.15,
-    0.10,
-    0.04,
-    0.30,
-  ];
-
-  int _weightedRandom() {
-    final random = Random();
-    final roll = random.nextDouble();
-    double cumulative = 0.0;
-    for (int i = 0; i < _rouletteProbabilities.length; i++) {
-      cumulative += _rouletteProbabilities[i];
-      if (roll < cumulative) return i;
-    }
-    return _rouletteProbabilities.length - 1;
-  }
 
   @override
   void initState() {
     super.initState();
     fetchUser();
+    fetchSpins();
 
     _rouletteController = AnimationController(
       vsync: this,
@@ -110,7 +87,15 @@ class _ProfileScreenState extends State<ProfileScreen>
       if (status == AnimationStatus.completed) {
         setState(() {
           isSpinning = false;
-          rouletteResult = _rouletteItems[_targetIndex];
+          _rouletteController.addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              setState(() {
+                isSpinning = false;
+                rouletteResult = pendingResult;
+                // sudah dari backend
+              });
+            }
+          });
         });
       }
     });
@@ -121,8 +106,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     _rouletteController.dispose();
     _currencyController.dispose();
     _timeController.dispose();
-    _saranController.dispose();
-    _kesanController.dispose();
     super.dispose();
   }
 
@@ -149,24 +132,75 @@ class _ProfileScreenState extends State<ProfileScreen>
     } catch (_) {}
   }
 
-  void _spinRoulette() {
+  Future<void> _spinRoulette() async {
     if (isSpinning) return;
-    _targetIndex = _weightedRandom();
-    final segmentAngle = 2 * pi / _rouletteItems.length;
-    final middleOfTargetSegment =
-        _targetIndex * segmentAngle + segmentAngle / 2;
-    final angleToStop = (2 * pi - middleOfTargetSegment) % (2 * pi);
-    final totalAngle = (6 * 2 * pi) + angleToStop;
+
     setState(() {
       isSpinning = true;
       rouletteResult = "";
       _currentAngle = 0;
     });
-    _rouletteController.reset();
-    _rouletteAnimation = Tween<double>(begin: 0, end: totalAngle).animate(
-      CurvedAnimation(parent: _rouletteController, curve: Curves.decelerate),
-    );
-    _rouletteController.forward();
+
+    try {
+      final result = await RouletteService.instance.spin();
+
+      final int index = result["index"];
+      final String reward = result["reward"];
+
+      setState(() {
+        remainingSpin = result["remaining_spins"];
+      });
+
+      _targetIndex = index;
+
+      final segmentAngle = 2 * pi / _rouletteItems.length;
+      final middleOfTargetSegment =
+          _targetIndex * segmentAngle + segmentAngle / 2;
+      final angleToStop = (2 * pi - middleOfTargetSegment) % (2 * pi);
+      final totalAngle = (6 * 2 * pi) + angleToStop;
+
+      _rouletteController.reset();
+      _rouletteAnimation = Tween<double>(begin: 0, end: totalAngle).animate(
+        CurvedAnimation(parent: _rouletteController, curve: Curves.decelerate),
+      );
+
+      _rouletteController.forward();
+
+      // simpan hasil dari backend
+      // rouletteResult = reward;
+      pendingResult = reward;
+
+
+      if (reward == "Sepeda Motor") {
+        if(!mounted) return;
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: Text("🎉 JACKPOT!"),
+            content: Text("Kamu mendapatkan Sepeda Motor!"),
+          ),
+        );
+      }
+
+    } catch (e) {
+      setState(() {
+        isSpinning = false;
+      });
+      if(!mounted)return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+  }
+  Future<void> fetchSpins() async {
+    try {
+      final spins = await RouletteService.instance.getRemainingSpins();
+
+      setState(() {
+        remainingSpin = spins;
+      });
+    } catch (_) {
+    }
   }
 
   void _convertCurrency() {
@@ -229,6 +263,25 @@ class _ProfileScreenState extends State<ProfileScreen>
           "${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}";
     });
     setState(() => _convertedTimes = result);
+  }
+  void _showRouletteInfo() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Informasi Roulette"),
+        content:  Text(
+          "Token bisa anda dapat setiap kali anda menyelesaikan tugas harian.\n\n"
+          "Hadiah akan diantarkan paling lambat 7 hari ke kantor SPPG anda.",
+          textAlign: TextAlign.justify,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -842,10 +895,30 @@ class _ProfileScreenState extends State<ProfileScreen>
       bgColor: const Color(0xCC4A148C),
       child: Column(
         children: [
-          _cardHeader(
-            Icons.casino_rounded,
-            Colors.purpleAccent,
-            "Mini Game Roulette",
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _cardHeader(
+                Icons.casino_rounded,
+                Colors.purpleAccent,
+                "Mini Game Roulette",
+              ),
+
+              //  ICON INFO
+              GestureDetector(
+                onTap: _showRouletteInfo,
+                child: const Icon(
+                  Icons.info_outline,
+                  color: Colors.white70,
+                ),
+              ),
+            ],
+          ),
+          Text("Token Spin : $remainingSpin",
+            style: TextStyle(
+              color: const Color.fromARGB(255, 250, 217, 0),
+              fontSize: 24
+            ),
           ),
           const SizedBox(height: 20),
           Stack(
@@ -1003,14 +1076,14 @@ class _RoulettePainter extends CustomPainter {
   _RoulettePainter(this.items);
 
   final List<Color> colors = [
-    Colors.red,
-    Colors.blue,
-    Colors.green,
-    Colors.orange,
-    Colors.purple,
-    Colors.teal,
-    Colors.pink,
-    Colors.amber,
+    Colors.red,      // Sepeda Motor
+    Colors.grey,     // zonk
+    Colors.grey,
+    Colors.green,    // 100k
+    Colors.grey,
+    Colors.grey,
+    Colors.blue,     // 50k
+    Colors.grey,
   ];
 
   @override
