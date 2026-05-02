@@ -13,9 +13,8 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  // Sesuaikan dengan warna biru khas SPPG
   final Color sppgBlue = const Color(0xFF0056A3); 
-  final Color activeColor = const Color(0xFF00D5FF); // Warna biru terang aplikasi
+  final Color activeColor = const Color(0xFF00D5FF);
 
   final List<Widget> _pages = [Dashboard(), ScanScreen(), ProfileScreen()];
 
@@ -39,7 +38,6 @@ class _MainScreenState extends State<MainScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 8),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            // Jika aktif, gunakan warna biru terang, jika tidak gunakan biru gelap SPPG
             color: isActive ? activeColor : sppgBlue.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(15),
             boxShadow: isActive 
@@ -73,11 +71,9 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Sesuai permintaan: background body menggunakan biru transparan
       backgroundColor: const Color.fromARGB(160, 0, 213, 255),
       body: _pages[_currentIndex],
       bottomNavigationBar: Container(
-        // Background navbar dibuat gelap agar kontras dengan body aplikasi
         decoration: BoxDecoration(
           color: sppgBlue,
         ),

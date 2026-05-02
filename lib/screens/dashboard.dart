@@ -88,13 +88,12 @@ class _DashboardState extends State<Dashboard> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Scaffold (
+    return Scaffold(
       body: Stack(
         children: [
           // Background gambar
           Positioned.fill(
             child: Image.asset("assets/logo_sppg.png", fit: BoxFit.cover),
-            // child: Image.asset("assets/logo_sppg.png", fit: BoxFit.cover),
           ),
 
           // background blur dengan foto sppg
@@ -133,7 +132,7 @@ class _DashboardState extends State<Dashboard> {
   }
 
   // ========================
-  // HEADER — dipertahankan persis
+  // HEADER
   // ========================
   Widget _header() {
     return ClipRRect(
@@ -208,12 +207,14 @@ class _DashboardState extends State<Dashboard> {
                     backgroundColor: Colors.white,
                     child: CircleAvatar(
                       radius: 37,
-                      backgroundImage: user != null && user!["foto_profil"] != null
+                      backgroundImage:
+                          user != null && user!["foto_profil"] != null
                           ? NetworkImage(user!["foto_profil"])
-                          : const AssetImage("assets/profile.png") as ImageProvider,
+                          : const AssetImage("assets/profile.png")
+                                as ImageProvider,
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -246,7 +247,7 @@ class _DashboardState extends State<Dashboard> {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xCC6DBF67), // hijau ~80%
+              color: const Color(0xCC6DBF67),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: const Color(0x6693D68D), width: 1),
             ),
@@ -322,56 +323,49 @@ class _DashboardState extends State<Dashboard> {
   }
 
   // ========================
-  // SEARCH — glass style
+  // SEARCH — solid style
   // ========================
   Widget _buildSearch() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: const Color(0x33FFFFFF),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0x40FFFFFF), width: 1),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(25),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          child: TextField(
-            controller: searchController,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-            cursorColor: Colors.white,
-            onChanged: (value) {
-              searchTugas(value);
-              setState(() {});
-            },
-            decoration: InputDecoration(
-              hintText: "Search data history tugas",
-              hintStyle: const TextStyle(
-                color: Color(0x99FFFFFF),
-                fontSize: 14,
-              ),
-              border: InputBorder.none,
-              icon: const Icon(
-                Icons.search_rounded,
-                color: Colors.white70,
-                size: 20,
-              ),
-              suffixIcon: searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(
-                        Icons.close_rounded,
-                        color: Colors.white70,
-                        size: 18,
-                      ),
-                      onPressed: () {
-                        searchController.clear();
-                        searchTugas("");
-                        setState(() {});
-                      },
-                    )
-                  : null,
-            ),
-          ),
+        ],
+      ),
+      child: TextField(
+        controller: searchController,
+        style: const TextStyle(color: Colors.black87, fontSize: 14),
+        cursorColor: Colors.blue,
+        onChanged: (value) {
+          searchTugas(value);
+          setState(() {});
+        },
+        decoration: InputDecoration(
+          hintText: "Search data history tugas",
+          hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+          border: InputBorder.none,
+          icon: const Icon(Icons.search_rounded, color: Colors.blue, size: 20),
+          suffixIcon: searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: Colors.grey,
+                    size: 18,
+                  ),
+                  onPressed: () {
+                    searchController.clear();
+                    searchTugas("");
+                    setState(() {});
+                  },
+                )
+              : null,
         ),
       ),
     );
@@ -427,7 +421,7 @@ class _DashboardState extends State<Dashboard> {
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xCC6B9FD4), // biru ~80%
+                  color: const Color(0xCC6B9FD4),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: const Color(0x4D8BB8E8), width: 1),
                 ),
@@ -460,14 +454,13 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 }
-Widget _AiChatButton(BuildContext context){
+
+Widget _AiChatButton(BuildContext context) {
   return GestureDetector(
     onTap: () {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => const ChatScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const ChatScreen()),
       );
     },
     child: Container(
@@ -475,22 +468,16 @@ Widget _AiChatButton(BuildContext context){
       height: 65,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          colors: [Colors.blue, Colors.purple],
-        ),
+        gradient: const LinearGradient(colors: [Colors.blue, Colors.purple]),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: Colors.black.withAlpha(77),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: const Icon(
-        Icons.smart_toy,
-        color: Colors.white,
-        size: 30,
-      ),
+      child: const Icon(Icons.smart_toy, color: Colors.white, size: 30),
     ),
   );
 }
