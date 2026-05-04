@@ -197,4 +197,6 @@ Reward Roulette 🎰
 # 👨‍💻 Author
 
 Developed for **SPPG Driver System**
+* Nabil Aqila Putra 123230085
+* Adib Fathani Awwab 123230104
 
