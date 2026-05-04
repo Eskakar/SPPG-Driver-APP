@@ -118,7 +118,10 @@ class _MapScreenState extends State<MapScreen> {
               // MENGGUNAKAN OPENSTREETMAP (Gratis, tidak butuh API Key)
               TileLayer(
                 urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                userAgentPackageName: 'com.sppg.driver.app',
+                additionalOptions: {
+                  'User-Agent': 'SppgDriverApp_v1_Development (email: nabilaqilaputra89@gmail.com)', // Tambahkan manual jika perlu
+                },
+                userAgentPackageName: 'com.example.sppg_driver_app',
               ),
 
               // Garis Rute (Polyline)
@@ -169,7 +172,19 @@ class _MapScreenState extends State<MapScreen> {
                 ),
               ),
             ),
-          )
+          ),
+          Positioned(
+            bottom: 5,
+            right: 5,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              color: Colors.white.withValues(alpha:0.7),
+              child: const Text(
+                "© OpenStreetMap contributors",
+                style: TextStyle(fontSize: 10),
+              ),
+            ),
+          ),
         ],
       ),
     );
